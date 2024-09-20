@@ -1,11 +1,14 @@
 from fastapi import FastAPI, Body, HTTPException
 from src.routers.reads_router import reads_router
 from fastapi.middleware.cors import CORSMiddleware
+from src.routers.auth_router import auth_router
+
 
 
 app = FastAPI()
 
 app.include_router(router=reads_router)
+app.include_router(router=auth_router)
 
 origins = [
     #"http://localhost.tiangolo.com",

@@ -27,17 +27,27 @@ class ReadsController:
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute("SELECT * FROM measurement_view ORDER BY created_at DESC LIMIT 1")
-                    row = cursor.fetchone()
-                    payload = {
-                        "id": row[0],
-                        "device_id": row[1],
-                        "unit_id": row[2],
-                        "user_id": row[3],
-                        "value": row[4],
-                        "created_at": row[5],
-                        "updated_at": row[6]
-                    }
+                    cursor.execute("""
+                        SELECT * FROM (
+                            SELECT *, ROW_NUMBER() OVER (PARTITION BY unit_id ORDER BY created_at DESC) as rn
+                            FROM measurement_view
+                            WHERE unit_id IN (1, 2)
+                        ) sub
+                        WHERE rn = 1
+                        ORDER BY unit_id
+                    """)
+                    rows = cursor.fetchall()
+                    payload = []
+                    for row in rows:
+                        payload.append({
+                            "id": row[0],
+                            "device_id": row[1],
+                            "unit_id": row[2],
+                            "user_id": row[3],
+                            "value": row[4],
+                            "created_at": row[5],
+                            "updated_at": row[6]
+                        })
             return jsonable_encoder(payload)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))

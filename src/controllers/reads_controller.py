@@ -10,9 +10,10 @@ class ReadsController:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
-                        "INSERT INTO data_dht11 (device_type, value, id_user) VALUES (%s, %s, %s)", 
+                        "INSERT INTO measurement (device_id, unit_id, value, id_user) VALUES (%s, %s, %s, %s)",
                         (
-                            read.device_type,
+                            read.device_id,
+                            read.unit_id,
                             read.value,
                             read.id_user,
                         ),

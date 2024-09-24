@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 class Read(BaseModel):
-    device_type: int
-    value: float
+    device_id: int
+    unit_id: int
     id_user: int
+    value: float

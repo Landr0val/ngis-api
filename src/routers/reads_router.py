@@ -23,3 +23,7 @@ async def get_reads():
     response = reads_controller.get_reads()
     return response
 
+@reads_router.get("/get_last_read")
+async def get_last_read():
+    response = reads_controller.get_last_read()
+    return response

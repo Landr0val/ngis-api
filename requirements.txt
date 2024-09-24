@@ -1,4 +1,4 @@
 fastapi[all]
 psycopg2[all]
-jose[all]
+python-jose[all]
 bcrypt[all]

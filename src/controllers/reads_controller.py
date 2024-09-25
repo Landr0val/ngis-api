@@ -30,7 +30,7 @@ class ReadsController:
                     cursor.execute("""
                         SELECT * FROM (
                             SELECT *, ROW_NUMBER() OVER (PARTITION BY unit_id ORDER BY created_at DESC) as rn
-                            FROM measurement_view
+                            FROM measurement
                             WHERE unit_id IN (1, 2)
                         ) sub
                         WHERE rn = 1

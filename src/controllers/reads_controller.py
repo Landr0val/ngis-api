@@ -34,6 +34,13 @@ class ReadsController:
                             WHERE unit_id IN (1, 2)
                         ) sub
                         WHERE rn = 1
+                        UNION
+                        SELECT * FROM (
+                            SELECT *, ROW_NUMBER() OVER (ORDER BY created_at DESC) as rn
+                            FROM measurement
+                            WHERE device_id = 2
+                        ) sub2
+                        WHERE rn = 1
                         ORDER BY unit_id
                     """)
                     rows = cursor.fetchall()

@@ -29,19 +29,19 @@ class ReadsController:
                 with conn.cursor() as cursor:
                     cursor.execute("""
                         SELECT * FROM (
-                            SELECT *, ROW_NUMBER() OVER (PARTITION BY unit_id ORDER BY created_at DESC) as rn
-                            FROM measurement
-                            WHERE unit_id IN (1, 2)
+                          SELECT *, ROW_NUMBER() OVER (PARTITION BY unit_id ORDER BY created_at DESC) as rn
+                          FROM measurement
+                          WHERE unit_id IN (1, 2) AND device_id = 1
                         ) sub
-                        WHERE rn = 1
+                        WHERE rn <= 2
                         UNION
                         SELECT * FROM (
-                            SELECT *, ROW_NUMBER() OVER (ORDER BY created_at DESC) as rn
-                            FROM measurement
-                            WHERE device_id = 2
+                          SELECT *, ROW_NUMBER() OVER (ORDER BY created_at DESC) as rn
+                          FROM measurement
+                          WHERE device_id = 2
                         ) sub2
                         WHERE rn = 1
-                        ORDER BY unit_id
+                        ORDER BY unit_id;
                     """)
                     rows = cursor.fetchall()
                     payload = []

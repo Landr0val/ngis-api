@@ -14,7 +14,10 @@ async def save_alert(alert: Alert):
     response = alert_controller.create_alert(alert)
     return response
 
+class UserRequest(BaseModel):
+    user_id: int
+
 @alert_router.get("/get_alert_config")
-def get_alert_config_endpoint(request: AlertConfig = Body(...)):
-    response = alert_controller.get_alerts(request.user_id)
+def get_alert_config_endpoint(request: UserRequest):
+    response = alert_controller.get_alert_config(request.user_id)
     return response

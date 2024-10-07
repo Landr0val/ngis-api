@@ -38,9 +38,7 @@ class AlertController:
                     result = cursor.fetchall()
             
             if result:
-                return {
-                    result
-                }
+                return result
             else:
                 return {"message": "No se encontraron configuraciones de alerta para el usuario especificado"}
         except Exception as e:

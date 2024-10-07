@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from src.models.reads_model import Read
 from src.models.alert_model import Alert
 from src.controllers.alert_controller import AlertController
+from pydantic import BaseModel
 
 alert_controller = AlertController()
 

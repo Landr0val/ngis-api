@@ -24,5 +24,5 @@ def get_alert_config_endpoint(user_id):
 
 @alert_router.get("/get_alert_config")
 def get_all_configs():
-    response = alert_controller.get_all_alerts()
+    response = alert_controller.get_all_configs()
     return response

@@ -2,7 +2,6 @@ from fastapi import FastAPI, Body, APIRouter, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from src.models.reads_model import Read
 from src.models.alert_model import Alert
-from src.models.getAlert_model import AlertConfig
 from src.controllers.alert_controller import AlertController
 
 alert_controller = AlertController()

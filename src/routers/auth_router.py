@@ -63,6 +63,6 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
                     "username": username,
                     "email": email
                 })
-                return {"access_token": token, "token_type": "bearer"}
+                return {"access_token": token, "token_type": "bearer", "user_id": user_id}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

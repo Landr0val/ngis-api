@@ -39,9 +39,7 @@ class AlertController:
             
             if result:
                 return {
-                    "temperature": result[0],
-                    "air_humidity": result[1],
-                    "soil_humidity": result[2],
+                    result
                 }
             else:
                 return {"message": "No se encontraron configuraciones de alerta para el usuario especificado"}

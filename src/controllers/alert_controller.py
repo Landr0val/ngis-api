@@ -43,3 +43,23 @@ class AlertController:
                 return {"message": "No se encontraron configuraciones de alerta para el usuario especificado"}
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+
+    def get_all_configs(self, user_id: int):
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        SELECT id, temperature, air_humidity, soil_humidity, created_at 
+                        FROM alert_config
+                        """
+                    )
+                    result = cursor.fetchall()
+            
+            if result:
+                return result
+            else:
+                return {"message": "No se encontraron configuraciones de alerta para el usuario especificado"}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))

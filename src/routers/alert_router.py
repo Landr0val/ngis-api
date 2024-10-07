@@ -18,6 +18,6 @@ class UserRequest(BaseModel):
     user_id: int
 
 @alert_router.get("/get_alert_config/{user_id}")
-def get_alert_config_endpoint():
+def get_alert_config_endpoint(user_id):
     response = alert_controller.get_alert_config(user_id)
     return response

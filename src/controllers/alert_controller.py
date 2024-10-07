@@ -35,7 +35,7 @@ class AlertController:
                         """,
                         (user_id,)
                     )
-                    result = cursor.fetchone()
+                    result = cursor.fetchall()
             
             if result:
                 return {

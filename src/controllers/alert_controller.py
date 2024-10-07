@@ -45,7 +45,7 @@ class AlertController:
             raise HTTPException(status_code=400, detail=str(e))
 
 
-    def get_all_configs(self, user_id: int):
+    def get_all_configs(self):
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:

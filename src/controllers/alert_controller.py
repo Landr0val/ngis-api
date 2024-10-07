@@ -23,25 +23,27 @@ class AlertController:
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
-    def get_alerts(self, alert: Alert):
+    def get_alert_config(self, user_id: int):
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute("SELECT * FROM measurement_view")
-                    rows = cursor.fetchall()
-                    payload = []
-
-                    for row in rows:
-                        payload.append({
-                            "id": row[0],
-                            "device_id": row[1],
-                            "unit_id": row[2],
-                            "user_id": row[3],
-                            "value": row[4],
-                            "created_at": row[5],
-                            "updated_at": row[6]
-                        })
-
-            return jsonable_encoder(payload)
+                    cursor.execute(
+                        """
+                        SELECT temperature, air_humidity, soil_humidity 
+                        FROM alert_config 
+                        WHERE user_id = %s
+                        """,
+                        (user_id,)
+                    )
+                    result = cursor.fetchone()
+            
+            if result:
+                return {
+                    "temperature": result[0],
+                    "air_humidity": result[1],
+                    "soil_humidity": result[2],
+                }
+            else:
+                return {"message": "No se encontraron configuraciones de alerta para el usuario especificado"}
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))

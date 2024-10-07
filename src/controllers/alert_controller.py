@@ -29,7 +29,7 @@ class AlertController:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT temperature, air_humidity, soil_humidity 
+                        SELECT id, temperature, air_humidity, soil_humidity, created_at 
                         FROM alert_config 
                         WHERE user_id = %s
                         """,

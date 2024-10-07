@@ -10,7 +10,7 @@ class AlertController:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
-                        "INSERT INTO measurement (temperature, air_humidity, soil_humidity, user_id) VALUES (%s, %s, %s, %s)",
+                        "INSERT INTO alert_config (temperature, air_humidity, soil_humidity, user_id) VALUES (%s, %s, %s, %s)",
                         (
                             alert.temperature,
                             alert.air_humidity,

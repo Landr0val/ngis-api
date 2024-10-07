@@ -15,5 +15,5 @@ async def save_alert(alert: Alert):
 
 @alert_router.get("/get_alert_config")
 async def get_alert_config(user_id: int = Query(..., description="ID del usuario para obtener la configuración de alertas")):
-    response = alert_controller.get_alerts()
+    response = alert_controller.get_alerts(user_id)
     return response

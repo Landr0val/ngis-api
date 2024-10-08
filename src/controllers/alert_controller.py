@@ -64,20 +64,20 @@ class AlertController:
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
-        def post_alert(self, alert: Alert):
-            try:
-                with get_db_connection() as conn:
-                    with conn.cursor() as cursor:
-                        cursor.execute(
-                            "INSERT INTO alert (temperature, air_humidity, soil_humidity, alert_config_id) VALUES (%s, %s, %s, %s)",
-                            (
-                                alert.temperature,
-                                alert.air_humidity,
-                                alert.soil_humidity,
-                                alert.alert_config_id,
-                            ),
-                        )
-                        conn.commit()
-                return {"message": "Alerta guardada correctamente"}
-            except Exception as e:
-                raise HTTPException(status_code=400, detail=str(e))
+    def post_alert(self, alert: Alert):
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        "INSERT INTO alert (temperature, air_humidity, soil_humidity, alert_config_id) VALUES (%s, %s, %s, %s)",
+                        (
+                            alert.temperature,
+                            alert.air_humidity,
+                            alert.soil_humidity,
+                            alert.alert_config_id,
+                        ),
+                    )
+                    conn.commit()
+            return {"message": "Alerta guardada correctamente"}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))

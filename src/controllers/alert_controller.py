@@ -1,8 +1,7 @@
 # src/controllers/alert_controller.py
 
-from src.models.alert_model import AlertConfig, Alert
+from src.models.alert_model import AlertConfig, Alert, AlertConfigUpdate
 from fastapi import HTTPException
-from fastapi.encoders import jsonable_encoder
 from src.config.db_config import get_db_connection
 from psycopg2 import sql  # Importación necesaria
 import psycopg2  # Asegúrate de que psycopg2 esté instalado
@@ -81,13 +80,15 @@ class AlertController:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id, temperature, air_humidity, soil_humidity, created_at 
+                        SELECT id, temperature, air_humidity, soil_humidity, temperature_threshold_id, air_humidity_threshold_id, soil_humidity_threshold_id, created_at 
                         FROM alert_config 
                         WHERE user_id = %s
                         """,
                         (user_id,)
                     )
-                    result = cursor.fetchall()
+                    rows = cursor.fetchall()
+                    columns = [desc[0] for desc in cursor.description]
+                    result = [dict(zip(columns, row)) for row in rows]
         
             if result:
                 return result
@@ -105,16 +106,18 @@ class AlertController:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id, temperature, air_humidity, soil_humidity, user_id, created_at 
+                        SELECT id, temperature, air_humidity, soil_humidity, temperature_threshold_id, air_humidity_threshold_id, soil_humidity_threshold_id, user_id, created_at 
                         FROM alert_config
                         """
                     )
-                    result = cursor.fetchall()
+                    rows = cursor.fetchall()
+                    columns = [desc[0] for desc in cursor.description]
+                    result = [dict(zip(columns, row)) for row in rows]
         
             if result:
                 return result
             else:
-                return {"message": "No se encontraron configuraciones de alerta para el usuario especificado"}
+                return {"message": "No se encontraron configuraciones de alerta para los usuarios especificados"}
         except psycopg2.Error as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
@@ -137,4 +140,53 @@ class AlertController:
                     conn.commit()
             return {"message": "Alerta guardada correctamente"}
         except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    def update_alert_config(self, alert_id: int, alert_update: AlertConfigUpdate):
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cursor:
+                    # Convertir el modelo Pydantic a un diccionario excluyendo valores None
+                    update_data = alert_update.dict(exclude_unset=True)
+                    
+                    if not update_data:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Debe proporcionar al menos uno de los campos para actualizar."
+                        )
+                    
+                    # Construir las partes de la consulta SQL dinámicamente
+                    set_clauses = []
+                    values = []
+                    for key, value in update_data.items():
+                        set_clauses.append(sql.SQL("{} = %s").format(sql.Identifier(key)))
+                        values.append(value)
+                    
+                    # Agregar el alert_id al final de los valores
+                    values.append(alert_id)
+                    
+                    # Construir la consulta SQL completa
+                    query = sql.SQL("UPDATE alert_config SET {set_clauses} WHERE id = %s").format(
+                        set_clauses=sql.SQL(', ').join(set_clauses)
+                    )
+                    
+                    # Ejecutar la consulta
+                    cursor.execute(query, values)
+                    
+                    # Verificar si alguna fila fue actualizada
+                    if cursor.rowcount == 0:
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f"No se encontró una configuración de alerta con id {alert_id}."
+                        )
+                    
+                    conn.commit()
+        
+            return {"message": "Configuración de alerta actualizada correctamente"}
+        
+        except psycopg2.Error as e:
+            # Manejo específico de errores de psycopg2
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            # Manejo general de otros errores
             raise HTTPException(status_code=400, detail=str(e))

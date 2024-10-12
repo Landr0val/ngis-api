@@ -31,3 +31,7 @@ def get_all_configs():
 def post_alert(alert: Alert):
     response = alert_controller.post_alert(alert)
     return response
+
+@router.put("/updateAlertConfig/{alert_id}")
+def update_alert_config(alert_id: int, alert_update: AlertConfigUpdate):
+    return controller.update_alert_config(alert_id, alert_update)

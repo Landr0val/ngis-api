@@ -13,20 +13,37 @@ class AlertController:
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
-                    # Definir las columnas y valores obligatorios
-                    columns = ["temperature", "air_humidity", "soil_humidity", "user_id"]
-                    values = [
-                        alert.temperature,
-                        alert.air_humidity,
-                        alert.soil_humidity,
-                        alert.user_id
-                    ]
+                    # Inicializar las columnas y valores con el campo obligatorio 'user_id'
+                    columns = ["user_id"]
+                    values = [alert.user_id]
 
-                    # Validar que los valores obligatorios no sean None
-                    if None in values:
-                        raise HTTPException(status_code=400, detail="Faltan valores obligatorios")
+                    # Contador para verificar que al menos uno de los tres campos esté presente
+                    data_fields_provided = 0
 
-                    # Agregar los campos opcionales si están presentes
+                    # Agregar los campos de datos si están presentes
+                    if alert.temperature is not None:
+                        columns.append("temperature")
+                        values.append(alert.temperature)
+                        data_fields_provided += 1
+
+                    if alert.air_humidity is not None:
+                        columns.append("air_humidity")
+                        values.append(alert.air_humidity)
+                        data_fields_provided += 1
+
+                    if alert.soil_humidity is not None:
+                        columns.append("soil_humidity")
+                        values.append(alert.soil_humidity)
+                        data_fields_provided += 1
+
+                    # Validar que al menos uno de los campos de datos esté presente
+                    if data_fields_provided == 0:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Debe proporcionar al menos uno de los campos: temperature, air_humidity, soil_humidity."
+                        )
+
+                    # Agregar los campos opcionales de thresholds si están presentes
                     if alert.temperature_threshold_id is not None:
                         columns.append("temperature_threshold_id")
                         values.append(alert.temperature_threshold_id)

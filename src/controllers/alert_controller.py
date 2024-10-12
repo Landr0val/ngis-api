@@ -9,20 +9,48 @@ class AlertController:
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute(
-                        "INSERT INTO alert_config (temperature, air_humidity, soil_humidity, user_id) VALUES (%s, %s, %s, %s)",
-                        (
-                            alert.temperature,
-                            alert.air_humidity,
-                            alert.soil_humidity,
-                            alert.user_id,
-                        ),
+                    # Definir las columnas y valores obligatorios
+                    columns = ["temperature", "air_humidity", "soil_humidity", "alert_config_id"]
+                    values = [
+                        alert.temperature,
+                        alert.air_humidity,
+                        alert.soil_humidity,
+                        alert.alert_config_id
+                    ]
+
+                    # Validar que los valores obligatorios no sean None
+                    if None in values:
+                        raise HTTPException(status_code=400, detail="Faltan valores obligatorios")
+
+                    # Agregar los campos opcionales si están presentes
+                    if alert.temperature_threshold_id is not None:
+                        columns.append("temperature_threshold_id")
+                        values.append(alert.temperature_threshold_id)
+                    
+                    if alert.air_humidity_threshold_id is not None:
+                        columns.append("air_humidity_threshold_id")
+                        values.append(alert.air_humidity_threshold_id)
+                    
+                    if alert.soil_humidity_threshold_id is not None:
+                        columns.append("soil_humidity_threshold_id")
+                        values.append(alert.soil_humidity_threshold_id)
+
+                    # Construir dinámicamente la consulta SQL
+                    query = sql.SQL("INSERT INTO alert ({}) VALUES ({})").format(
+                        sql.SQL(', ').join(map(sql.Identifier, columns)),
+                        sql.SQL(', ').join(sql.Placeholder() * len(values))
                     )
+
+                    # Ejecutar la consulta con los valores dinámicos
+                    cursor.execute(query, values)
                     conn.commit()
+
             return {"message": "Alerta guardada correctamente"}
+        
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
+            
     def get_alert_config(self, user_id: int):
         try:
             with get_db_connection() as conn:
@@ -68,43 +96,16 @@ class AlertController:
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
-                    # Definir las columnas y valores obligatorios
-                    columns = ["temperature", "air_humidity", "soil_humidity", "alert_config_id"]
-                    values = [
-                        alert.temperature,
-                        alert.air_humidity,
-                        alert.soil_humidity,
-                        alert.alert_config_id
-                    ]
-
-                    # Validar que los valores obligatorios no sean None
-                    if None in values:
-                        raise HTTPException(status_code=400, detail="Faltan valores obligatorios")
-
-                    # Agregar los campos opcionales si están presentes
-                    if alert.temp_threshold_id is not None:
-                        columns.append("temp_threshold_id")
-                        values.append(alert.temp_threshold_id)
-                    
-                    if alert.air_threshold_id is not None:
-                        columns.append("air_threshold_id")
-                        values.append(alert.air_threshold_id)
-                    
-                    if alert.soil_threshold_id is not None:
-                        columns.append("soil_threshold_id")
-                        values.append(alert.soil_threshold_id)
-
-                    # Construir dinámicamente la consulta SQL
-                    query = sql.SQL("INSERT INTO alert ({}) VALUES ({})").format(
-                        sql.SQL(', ').join(map(sql.Identifier, columns)),
-                        sql.SQL(', ').join(sql.Placeholder() * len(values))
+                    cursor.execute(
+                        "INSERT INTO alert (temperature, air_humidity, soil_humidity, alert_config_id) VALUES (%s, %s, %s, %s)",
+                        (
+                            alert.temperature,
+                            alert.air_humidity,
+                            alert.soil_humidity,
+                            alert.alert_config_id,
+                        ),
                     )
-
-                    # Ejecutar la consulta con los valores dinámicos
-                    cursor.execute(query, values)
                     conn.commit()
-
             return {"message": "Alerta guardada correctamente"}
-        
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))

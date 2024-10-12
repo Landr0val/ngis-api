@@ -40,7 +40,7 @@ class AlertController:
                         values.append(alert.soil_humidity_threshold_id)
 
                     # Construir dinámicamente la consulta SQL
-                    query = sql.SQL("INSERT INTO alert ({fields}) VALUES ({placeholders})").format(
+                    query = sql.SQL("INSERT INTO alert_config ({fields}) VALUES ({placeholders})").format(
                         fields=sql.SQL(', ').join(map(sql.Identifier, columns)),
                         placeholders=sql.SQL(', ').join(sql.Placeholder() * len(values))
                     )

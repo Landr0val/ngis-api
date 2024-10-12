@@ -10,12 +10,12 @@ class AlertController:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     # Definir las columnas y valores obligatorios
-                    columns = ["temperature", "air_humidity", "soil_humidity", "alert_config_id"]
+                    columns = ["temperature", "air_humidity", "soil_humidity", "user_id"]
                     values = [
                         alert.temperature,
                         alert.air_humidity,
                         alert.soil_humidity,
-                        alert.alert_config_id
+                        alert.user_id
                     ]
 
                     # Validar que los valores obligatorios no sean None
@@ -50,7 +50,6 @@ class AlertController:
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
-            
     def get_alert_config(self, user_id: int):
         try:
             with get_db_connection() as conn:

@@ -34,4 +34,4 @@ def post_alert(alert: Alert):
 
 @alert_router.put("/updateAlertConfig/{alert_id}")
 def update_alert_config(alert_id: int, alert_update: AlertConfigUpdate):
-    return controller.update_alert_config(alert_id, alert_update)
+    return alert_controller.update_alert_config(alert_id, alert_update)

@@ -190,3 +190,29 @@ class AlertController:
         except Exception as e:
             # Manejo general de otros errores
             raise HTTPException(status_code=400, detail=str(e))
+
+    def delete_alert_config(self, alert_id: int):
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cursor:
+                    # Ejecutar la consulta de eliminación
+                    cursor.execute("DELETE FROM alert_config WHERE id = %s", (alert_id,))
+                    
+                    # Verificar si alguna fila fue eliminada
+                    if cursor.rowcount == 0:
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f"No se encontró una configuración de alerta con id {alert_id}."
+                        )
+                    
+                    # Confirmar la transacción
+                    conn.commit()
+            
+            return {"message": "Configuración de alerta eliminada correctamente"}
+        
+        except psycopg2.Error as e:
+            # Manejo específico de errores de psycopg2
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            # Manejo general de otros errores
+            raise HTTPException(status_code=400, detail=str(e))

@@ -38,4 +38,4 @@ def update_alert_config(alert_id: int, alert_update: AlertConfigUpdate):
 
 @alert_router.delete("/delete_alert_config/{alert_id}", response_model=dict)
 def delete_alert_config(alert_id: int):
-    return alert_controller.delete_alert_config(alertid)
+    return alert_controller.delete_alert_config(alert_id)

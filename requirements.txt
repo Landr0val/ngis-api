@@ -1,4 +1,6 @@
 fastapi[all]
 psycopg2[all]
-python-jose[all]
-bcrypt[all]
+pyjwt[all]
+passlib[all]
+python-dotenv[all]
+pyjwt

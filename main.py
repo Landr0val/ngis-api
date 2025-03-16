@@ -4,8 +4,6 @@ from src.routers.reads_router import reads_router
 from src.routers.auth_router import auth_router
 from src.routers.alert_router import alert_router
 
-
-
 app = FastAPI()
 
 app.include_router(router=reads_router)

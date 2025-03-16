@@ -1,22 +1,23 @@
-# src/controllers/alert_controller.py
-
+from socket import create_connection
 from src.models.alert_model import AlertConfig, Alert, AlertConfigUpdate
 from fastapi import HTTPException
-from src.config.db_config import get_db_connection
-from psycopg2 import sql  # Importación necesaria
-import psycopg2  # Asegúrate de que psycopg2 esté instalado
+from src.config.db_config import get_db_connection, realease_db_connection
+from psycopg2 import sql
+import psycopg2
 
 class AlertController:
 
     def create_alert(self, alert: AlertConfig):
+
+        connection = get_db_connection()
+        if not connection:
+           raise HTTPException(status_code=500, detail="Database connection error")
+        
         try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cursor:
-                    # Inicializar las columnas y valores con el campo obligatorio 'user_id'
+            with connection.cursor() as cursor:
+        
                     columns = ["user_id"]
                     values = [alert.user_id]
-
-                    # Contador para verificar que al menos uno de los tres campos esté presente
                     data_fields_provided = 0
 
                     # Agregar los campos de datos si están presentes
@@ -55,97 +56,116 @@ class AlertController:
                         columns.append("soil_humidity_threshold_id")
                         values.append(alert.soil_humidity_threshold_id)
 
-                    # Construir dinámicamente la consulta SQL
                     query = sql.SQL("INSERT INTO alert_config ({fields}) VALUES ({placeholders})").format(
                         fields=sql.SQL(', ').join(map(sql.Identifier, columns)),
                         placeholders=sql.SQL(', ').join(sql.Placeholder() * len(values))
                     )
 
-                    # Ejecutar la consulta con los valores dinámicos
                     cursor.execute(query, values)
-                    conn.commit()
+                    connection.commit()
 
             return {"message": "Alerta guardada correctamente"}
         
         except psycopg2.Error as e:
-            # Manejo específico de errores de psycopg2
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         except Exception as e:
-            # Manejo general de otros errores
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+        finally:
+            realease_db_connection(connection)
 
     def get_alert_config(self, user_id: int):
-        try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT id, temperature, air_humidity, soil_humidity, temperature_threshold_id, air_humidity_threshold_id, soil_humidity_threshold_id, created_at 
-                        FROM alert_config 
-                        WHERE user_id = %s
-                        """,
-                        (user_id,)
-                    )
-                    rows = cursor.fetchall()
-                    columns = [desc[0] for desc in cursor.description]
-                    result = [dict(zip(columns, row)) for row in rows]
-        
-            if result:
-                return result
-            else:
-                return {"message": "No se encontraron configuraciones de alerta para el usuario especificado"}
-        except psycopg2.Error as e:
-            raise HTTPException(status_code=400, detail=str(e))
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
 
+        connection = get_db_connection()
+        if not connection:
+            raise HTTPException(status_code=500, detail="Database connection error")
+        
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, temperature, air_humidity, soil_humidity,
+                            temperature_threshold_id, air_humidity_threshold_id,
+                            soil_humidity_threshold_id, created_at 
+                        FROM alert_config 
+                        WHERE user_id = %s 
+                """,(user_id,))
+
+                rows = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                result = [dict(zip(columns, row)) for row in rows]
+
+            return result
+        
+        except psycopg2.Error as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+        
+        finally:
+            realease_db_connection(connection)
 
     def get_all_configs(self):
+
+        connection = get_db_connection()
+        if not connection:
+            raise HTTPException(status_code=500, detail="Database connection error")
+        
         try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cursor:
+            with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id, temperature, air_humidity, soil_humidity, temperature_threshold_id, air_humidity_threshold_id, soil_humidity_threshold_id, user_id, created_at 
+                        SELECT id, temperature, air_humidity, soil_humidity, temperature_threshold_id,
+                          air_humidity_threshold_id, soil_humidity_threshold_id, user_id, created_at 
                         FROM alert_config
-                        """
-                    )
+                        """)
+                    
                     rows = cursor.fetchall()
+                    if not rows:
+                      return {"message": "No se encontraron configuraciones de alerta"}
+                
                     columns = [desc[0] for desc in cursor.description]
                     result = [dict(zip(columns, row)) for row in rows]
+
+            return result
         
-            if result:
-                return result
-            else:
-                return {"message": "No se encontraron configuraciones de alerta para los usuarios especificados"}
         except psycopg2.Error as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
-
-
+            raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+        
+        finally:
+            realease_db_connection(connection)
+    
     def post_alert(self, alert: Alert):
+        
+        connection = get_db_connection()
+        if not connection:
+            raise HTTPException(status_code=500, detail="Database connection error")
+        
         try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cursor:
+            with connection.cursor() as cursor:
                     cursor.execute(
-                        "INSERT INTO alert (temperature, air_humidity, soil_humidity, alert_config_id) VALUES (%s, %s, %s, %s)",
-                        (
-                            alert.temperature,
-                            alert.air_humidity,
-                            alert.soil_humidity,
-                            alert.alert_config_id,
-                        ),
-                    )
-                    conn.commit()
+                        """INSERT INTO alert (temperature, air_humidity, soil_humidity, alert_config_id)
+                         VALUES (%s, %s, %s, %s)""",
+                        (alert.temperature,alert.air_humidity,alert.soil_humidity,alert.alert_config_id,),)
+                    connection.commit()
+
             return {"message": "Alerta guardada correctamente"}
+        
+        except psycopg2.Error as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+        
+        finally:
+            realease_db_connection(connection)
 
     def update_alert_config(self, alert_id: int, alert_update: AlertConfigUpdate):
         try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cursor:
+            connection = get_db_connection()
+            if not connection:
+                raise HTTPException(status_code=500, detail="Database connection error")
+            
+            with connection.cursor() as cursor:
                     # Convertir el modelo Pydantic a un diccionario excluyendo valores None
                     update_data = alert_update.dict(exclude_unset=True)
                     
@@ -161,7 +181,7 @@ class AlertController:
                     for key, value in update_data.items():
                         set_clauses.append(sql.SQL("{} = %s").format(sql.Identifier(key)))
                         values.append(value)
-                    
+
                     # Agregar el alert_id al final de los valores
                     values.append(alert_id)
                     
@@ -180,39 +200,36 @@ class AlertController:
                             detail=f"No se encontró una configuración de alerta con id {alert_id}."
                         )
                     
-                    conn.commit()
+                    connection.commit()
         
             return {"message": "Configuración de alerta actualizada correctamente"}
         
         except psycopg2.Error as e:
-            # Manejo específico de errores de psycopg2
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         except Exception as e:
-            # Manejo general de otros errores
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+        finally:
+            realease_db_connection(connection)
 
     def delete_alert_config(self, alert_id: int):
         try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cursor:
-                    # Ejecutar la consulta de eliminación
+            connection = get_db_connection()
+            with connection.cursor() as cursor:
                     cursor.execute("DELETE FROM alert_config WHERE id = %s", (alert_id,))
-                    
-                    # Verificar si alguna fila fue eliminada
+
                     if cursor.rowcount == 0:
                         raise HTTPException(
                             status_code=404,
                             detail=f"No se encontró una configuración de alerta con id {alert_id}."
                         )
                     
-                    # Confirmar la transacción
-                    conn.commit()
+                    connection.commit()
             
             return {"message": "Configuración de alerta eliminada correctamente"}
         
         except psycopg2.Error as e:
-            # Manejo específico de errores de psycopg2
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         except Exception as e:
-            # Manejo general de otros errores
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+        finally:
+            realease_db_connection(connection)

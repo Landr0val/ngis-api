@@ -83,7 +83,7 @@ class ReadsController:
         
         try:
             with connection.cursor() as cursor:
-                    cursor.execute("SELECT * FROM measurement")
+                    cursor.execute("SELECT * FROM measurement_view")
                     rows = cursor.fetchall()
                     payload = []
 
@@ -107,7 +107,7 @@ class ReadsController:
         finally:
             realease_db_connection(connection)
 
-    def get_read(self, user_id: int):
+    def get_read(self, username: str):
         
         connection = get_db_connection()
         if not connection:
@@ -115,7 +115,7 @@ class ReadsController:
         
         try:
             with connection.cursor() as cursor:
-                    cursor.execute("SELECT * FROM measurement WHERE user_id = %s", (user_id,))
+                    cursor.execute("SELECT * FROM measurement_view WHERE user_username = %s", (username,))
                     rows = cursor.fetchall()
                     payload = []
 

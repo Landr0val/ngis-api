@@ -2,12 +2,12 @@ import jwt
 import os
 from datetime import datetime, timedelta
 
-SECRET_KEY = os.getenv("secret_key")
-ALGORITHM = os.getenv("algorithm")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("access_token_expire_minutes"))
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE= int(os.getenv("ACCESS_TOKEN_EXPIRE"))
 
 def create_access_token(user_id: int, username: str, email: str, rol_id: int):
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE)
     payload = {
         "sub": str(user_id),
         "username": username,

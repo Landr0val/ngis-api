@@ -73,7 +73,7 @@ class AlertController:
         finally:
             realease_db_connection(connection)
 
-    def get_alert_config(self, user_id: int):
+    def get_alert_config(self, username: str):
 
         connection = get_db_connection()
         if not connection:
@@ -81,17 +81,22 @@ class AlertController:
         
         try:
             with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT id, temperature, air_humidity, soil_humidity,
-                            temperature_threshold_id, air_humidity_threshold_id,
-                            soil_humidity_threshold_id, created_at 
-                        FROM alert_config 
-                        WHERE user_id = %s 
-                """,(user_id,))
 
-                rows = cursor.fetchall()
-                columns = [desc[0] for desc in cursor.description]
-                result = [dict(zip(columns, row)) for row in rows]
+              cursor.execute("""
+                SELECT ac.id, ac.temperature, ac.air_humidity, ac.soil_humidity, ac.temperature_threshold_id,
+                  ac.air_humidity_threshold_id, ac.soil_humidity_threshold_id, ac.user_id, ac.created_at
+                FROM alert_config ac
+                JOIN "user" u ON ac.user_id = u.id
+                WHERE u.username = %s
+              """, (username,))
+              
+              rows = cursor.fetchall()
+
+              if not rows:
+                  raise HTTPException(status_code=404, detail="No se encontró una configuración de alerta para el usuario.")
+              
+              columns = [desc[0] for desc in cursor.description]
+              result = [dict(zip(columns, row)) for row in rows]
 
             return result
         

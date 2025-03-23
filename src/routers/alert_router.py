@@ -6,19 +6,18 @@ from src.controllers.alert_controller import AlertController
 alert_controller = AlertController()
 alert_router = APIRouter()
 
-@alert_router.get("/get_alert_config/{user_id}")
-async def get_alert_config_endpoint(user_id: int, current_user: dict = Depends(get_current_user)):
-    user_id_from_token = current_user.get("sub")
-    if int(user_id_from_token) == user_id:
-        return alert_controller.get_alert_config(user_id)
-    
+@alert_router.get("/get_alert_config/{username}")
+async def get_alert_config_endpoint(username: str, current_user: dict = Depends(get_current_user)):
+    username_token = current_user.get("username")
+    if username_token == username:
+        return alert_controller.get_alert_config(username)
     raise HTTPException(status_code=401, detail="Unauthorized user")
     
-@alert_router.get("/get_alert_config")
+@alert_router.get("/get_alert_config") #public esp32
 async def get_all_configs():
     return alert_controller.get_all_configs()
 
-@alert_router.post("/post_alert")
+@alert_router.post("/post_alert")#public esp32
 async def post_alert(alert: Alert):
     return alert_controller.post_alert(alert)
 

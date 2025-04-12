@@ -135,6 +135,44 @@ class AlertController:
         finally:
             realease_db_connection(connection)
     
+    def get_alert_active(self, user_id: int):
+        connection = get_db_connection()
+        if not connection:
+            raise HTTPException(status_code=500, detail="Database connection error")
+        
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT   
+                        a.id AS alert_id,
+                        a.temperature,
+                        a.air_humidity,
+                        a.soil_humidity,
+                        a.created_at AS alert_active_at,
+                        ac.user_id,
+                        ac.id AS alert_config_id
+                    FROM 
+                        alert a
+                    JOIN 
+                        alert_config ac
+                    ON 
+                        a.alert_config_id = ac.id
+                    WHERE 
+                        ac.user_id = %s
+                """, (user_id,))
+                rows = cursor.fetchall()
+                if not rows:
+                    return {"message": "No se encontraron alertas activas"}
+                columns = [desc[0] for desc in cursor.description]
+                result = [dict(zip(columns, row)) for row in rows]
+            return result
+        except psycopg2.Error as e:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Unexpected error: {str(e)}")
+        finally:
+            realease_db_connection(connection)
+
     def post_alert(self, alert: Alert):
         
         connection = get_db_connection()

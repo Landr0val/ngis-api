@@ -14,7 +14,7 @@ async def get_alert_config_endpoint(user_id: int, current_user: dict = Depends(g
     
     raise HTTPException(status_code=401, detail="Unauthorized user")
 
-@alert_router.get("/activated/{user_id}")
+@alert_router.get("/get_alert_activated/{user_id}")
 async def get_alert_active(user_id: int, current_user: dict = Depends(get_current_user)):
     user_id_from_token = current_user.get("sub")
     if int(user_id_from_token) == user_id:

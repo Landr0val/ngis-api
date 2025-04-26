@@ -253,6 +253,7 @@ class AlertController:
         try:
             connection = get_db_connection()
             with connection.cursor() as cursor:
+                    cursor.execute("DELETE FROM alert WHERE alert_config_id = %s", (alert_id,))
                     cursor.execute("DELETE FROM alert_config WHERE id = %s", (alert_id,))
 
                     if cursor.rowcount == 0:
